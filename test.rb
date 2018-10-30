@@ -13,6 +13,10 @@ def write_to_yaml(path, hash)
     end
 end
 
+def date_string datetime
+    datetime.strftime("%A, %B %e %H:%M") rescue nil
+end
+
 class Account
 
     attr_accessor :name, :current_token, :service, :argvs
@@ -47,11 +51,36 @@ class Account
     def run_flag
         puts "we run"
         show_today if @argvs[0] == "-t"
+        get_responses_needed if @argvs[0] == "-r"
+    end
+
+    def get_responses_needed
+        events = @service.list_events("primary", max_results: 400, time_min: Time.now.iso8601)
+        cool = events.items.select do |e|
+                e.attendees && e.attendees.any? do |a|
+                        a.email == 'mark@ekta.co' &&
+                        a.response_status == "needsAction"
+                end
+        end
+
+        print_summary = -> (a,i) { puts "#{i} - #{a.summary} - #{date_string(a.start.date_time)}" }
+        puts "Events that need your response"
+        cool.each.with_index { |a,i| print_summary[a,i] }
+
+        get_exit
+    end
+
+
+    def get_exit
+        puts "press q to exit, number to go to the event"
+        input = $stdin.gets.chomp
+        return if input == "q"
+        get_exit
     end
 
     def show_today
        now = DateTime.now
-       time_max = DateTime.new(now.year, now.month, now.day, 11, 59, 59,now.zone)
+       time_max = DateTime.new(now.year, now.month + 1, now.day, 11, 59, 59,now.zone)
        response = @service.list_events("primary",
                                max_results: 250,
                                single_events: true,
@@ -60,9 +89,27 @@ class Account
                                time_min: now.iso8601)
 puts 'Upcoming events:'
 puts 'No upcoming events today' if response.items.empty?
+
+puts response.items[0].methods
+
 response.items.each do |event|
   start = event.start.date || event.start.date_time
+  puts "----------"
+  puts "attachments #{event.attachments}"
+  puts "attendees #{event.attendees}"
+  puts "conference info #{event.conference_data}"
+  puts "creator #{event.creator}"
+  puts "description: #{event.description}"
+  puts "etag #{event.etag}"
+  puts "extended properties #{event.extended_properties}"
+  puts "gadget #{event.gadget}"
+  puts "hangout #{event.hangout_link}"
+  puts "html #{event.html_link}"
+
   puts "- #{event.summary} (#{start})"
+  puts event.status
+  # puts event.transparency.class
+  # puts event.visibility.class
 end
 
     end
