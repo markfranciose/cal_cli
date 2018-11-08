@@ -80,11 +80,36 @@ class Account
                 end
         end
 
-        print_summary = -> (a,i) { puts "#{i} - #{a.summary} - #{date_string(a.start.date_time)}" }
+        print_summary = -> (a,i) { puts "ID = #{a.id} #{i} - #{a.summary} - #{date_string(a.start.date_time)}" }
         puts "Events that need your response"
         cool.each.with_index { |a,i| print_summary[a,i] }
 
-        get_exit
+        # get_event_info(cool[15].id)
+        # get event or exit
+        # get_exit
+        
+        puts "press q to exit, number to go to the event"
+        input = $stdin.gets.chomp.to_i
+        get_event_info(cool[input].id)
+         
+        
+    end
+
+    # the purpose of this method is to either exit the program, or to look up a single event.
+    def get_event_or_exit
+    end
+
+    def get_event_info(event_identifier)
+        event = @service.get_event("primary", event_identifier)
+        puts event.summary
+        puts event.location
+        event.attendees.each do |a|
+                puts a.display_name
+                puts a.email
+        end
+        # puts event.methods
+        puts event.organizer.email
+        puts event.organizer.display_name
     end
 
 
