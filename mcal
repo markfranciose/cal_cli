@@ -65,7 +65,6 @@ class Account
     end 
 
     def run_flag
-        puts "we run"
         show_today if @argvs[0] == "-t"
         get_responses_needed if @argvs[0] == "-r"
         add_event if @argvs[0] == "-a"
@@ -132,9 +131,11 @@ class Account
 puts 'Upcoming events:'
 puts 'No upcoming events today' if response.items.empty?
 
-response.items.each do |event|
+response.items.each_with_index do |event, index|
   start = event.start.date || event.start.date_time
-  puts "----------"
+  e_end = event.end.date || event.end.date_time
+  puts "#{index.to_s.rjust(2)}|#{event.summary.center(40)} | #{start.strftime("%H:%M%P")}-#{e_end.strftime("%H:%M%P")}"
+=begin
   puts "attachments #{event.attachments}"
   puts "attendees #{event.attendees}"
   puts "conference info #{event.conference_data}"
@@ -145,9 +146,9 @@ response.items.each do |event|
   puts "gadget #{event.gadget}"
   puts "hangout #{event.hangout_link}"
   puts "html #{event.html_link}"
+=end
 
-  puts "- #{event.summary} (#{start})"
-  puts event.status
+#  puts event.status
   # puts event.transparency.class
   # puts event.visibility.class
 end
